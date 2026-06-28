@@ -1,0 +1,37 @@
+{
+  "name": "@tape-deck/cover-art",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./app.ts",
+    "./stories/types.ts": "./stories/types.ts",
+    "./mocks/fetch.ts": "./mocks/fetch.ts"
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "lib": ["deno.window", "dom", "dom.iterable", "esnext"],
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "imports": {
+    "@tape-deck/util/": "../util/",
+    "@std/assert": "jsr:@std/assert@1",
+    "@std/cli": "jsr:@std/cli@1",
+    "id3js": "npm:id3js@^2.1.1"
+  },
+  "tasks": {
+    "bundle": "deno bundle --import-map=.build/import-map.json --platform=browser app.ts -o .build/app.js",
+    "serve": "deno run --allow-net --allow-read --allow-env server.ts",
+    "start": "deno run --allow-read --allow-write --allow-run --allow-net --allow-env start.ts",
+    "dev": "deno run --watch=.,../samples/,../util/ --allow-read --allow-write --allow-run --allow-net --allow-env start.ts --dev",
+    "test": "deno run --allow-read --allow-write --allow-run --allow-env test_setup.ts && deno test --import-map=.build/import-map.json --no-check --allow-env --allow-read --allow-write --allow-run"
+  },
+  "fmt": {
+    "include": ["."]
+  },
+  "lint": {
+    "include": ["."],
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}

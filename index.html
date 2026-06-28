@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cover-art — @tape-deck/samples gallery</title>
+    <link rel="stylesheet" href="/gallery.css" />
+  </head>
+  <body>
+    <div id="app" class="gallery-app">
+      <aside class="gallery-sidebar">
+        <header class="gallery-sidebar__header">
+          <h1 class="gallery-sidebar__title">cover-art</h1>
+          <p class="gallery-sidebar__subtitle">@tape-deck/samples</p>
+          <label class="gallery-search">
+            <span class="visually-hidden">Filter stories</span>
+            <input
+              id="story-filter"
+              type="search"
+              placeholder="Filter stories…"
+              autocomplete="off"
+            />
+          </label>
+        </header>
+        <nav id="story-nav" class="gallery-nav" aria-label="Stories"></nav>
+      </aside>
+      <main class="gallery-main">
+        <header class="gallery-main__header">
+          <h2 id="story-title" class="gallery-main__title">Select a story</h2>
+          <code id="story-id" class="gallery-main__id"></code>
+        </header>
+        <div id="preview" class="gallery-preview" aria-live="polite"></div>
+      </main>
+    </div>
+    <script type="module" src="/.build/app.js"></script>
+  </body>
+</html>
