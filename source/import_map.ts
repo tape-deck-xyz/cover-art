@@ -29,15 +29,41 @@ export async function readDenoConfig(dir: URL): Promise<DenoConfig> {
 }
 
 /** Resolve an import map entry relative to `base`. */
-export function resolveImportEntry(base: URL, value: string): string {
+export function resolveImportEntry(base: URL, value: string): URL | string {
   if (value.startsWith("jsr:") || value.startsWith("npm:")) {
     return value;
   }
   if (value.startsWith("file://")) {
     return value;
   }
-  const resolved = new URL(value, base);
-  return toImportMapPath(resolved);
+  return new URL(value, base);
+}
+
+async function pathExists(url: URL): Promise<boolean> {
+  try {
+    await Deno.stat(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Resolve a local import, falling back to cover-art root for sibling monorepo deps. */
+export async function resolveLocalImportEntry(
+  sourceRoot: URL,
+  coverArtRoot: URL,
+  value: string,
+): Promise<URL | string> {
+  const resolved = resolveImportEntry(sourceRoot, value);
+  if (typeof resolved === "string") return resolved;
+
+  if (await pathExists(resolved)) return resolved;
+
+  const fallback = resolveImportEntry(coverArtRoot, value);
+  if (typeof fallback === "string") return fallback;
+  if (await pathExists(fallback)) return fallback;
+
+  return resolved;
 }
 
 /** Format a URL for use in an import map (relative to output dir when possible). */
@@ -59,7 +85,14 @@ export async function buildImportMapEntries(
 
   if (sourceConfig.imports) {
     for (const [key, value] of Object.entries(sourceConfig.imports)) {
-      imports[key] = resolveImportEntry(sourceRoot, value);
+      const resolved = await resolveLocalImportEntry(
+        sourceRoot,
+        coverArtRoot,
+        value,
+      );
+      imports[key] = typeof resolved === "string"
+        ? resolved
+        : relativeTo(outputDir, resolved);
     }
   }
 
@@ -67,15 +100,18 @@ export async function buildImportMapEntries(
     for (const [key, value] of Object.entries(coverArtConfig.imports)) {
       if (key.startsWith("@tape-deck/samples/")) continue;
       if (!(key in imports)) {
-        imports[key] = resolveImportEntry(coverArtRoot, value);
+        const resolved = await resolveLocalImportEntry(
+          coverArtRoot,
+          coverArtRoot,
+          value,
+        );
+        imports[key] = typeof resolved === "string"
+          ? resolved
+          : relativeTo(outputDir, resolved);
       }
     }
   }
 
-  imports["@source/"] = toImportMapPath(sourceRoot);
-  imports["@tape-deck/cover-art/"] = toImportMapPath(coverArtRoot);
-
-  // Prefer paths relative to the import map file for local roots.
   imports["@source/"] = relativeTo(outputDir, sourceRoot);
   imports["@tape-deck/cover-art/"] = relativeTo(outputDir, coverArtRoot);
 
